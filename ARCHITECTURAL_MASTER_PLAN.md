@@ -39,7 +39,19 @@ graph TD
 * **Outcome:** The highly accurate transcribed text is then piped back into your active agent workspace.
 
 ### 3. Design & Image Generation (Flux.1 / Llama-Vision)
-* **Workflow:** UI design reads, image understandings, or landing page graphics generation are routed to **Llama-3.2-Vision** or **Flux.1-schnell** inside the GPU-passthrough Python `ml_pipeline` container.
+* **Workflow:** UI design reads, image understandings, or landing page graphics generation are routed to **Llama-3.2-Vision** or **Flux.1-schnell** inside the GPU-passthrough containers.
+* **The "Surgical Eyes" tool (`visual_inspect.py`):** Rather than letting the coding agent automatically inspect the UI on every cycle (which wastes RAM and creates infinite refactoring loops), we have built a surgical inspection tool `/workspace/visual_inspect.py`:
+  1. Whenever the `lario` CLI completes a UI edit, it can run:
+     ```bash
+     ./visual_inspect.py /workspace/index.html
+     ```
+  2. The script headlessly launches **Chromium** inside the container to capture a pixel-perfect screenshot in less than a second.
+  3. It base64-encodes the screenshot and dispatches it to **Llama-3.2-Vision:latest** on your GPU via Bifrost.
+  4. Llama-Vision returns exact layout alignment audits, color contrast reviews, and Tailwind refactoring suggestions back to the CLI terminal, allowing Qwen to surgically fix the code!
+  5. *Optional Mockup Comparison:* You can pass a Figma/design mockup image to compare the rendering against the spec:
+     ```bash
+     ./visual_inspect.py /workspace/index.html --mockup /workspace/mockup.png
+     ```
 
 ### 4. High-Performance String Matching (ING EMM)
 * **Workflow:** Fuzzy matches or master client data reconciliation are dispatched to the containerized, GPU-accelerated **ING EMM string-matching model** inside the `ml_pipeline` container. The raw mathematical matches and confidence scores are returned, allowing Qwen to quickly format them into an elegant markdown report.
