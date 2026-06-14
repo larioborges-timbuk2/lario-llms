@@ -124,20 +124,14 @@ We use high-range IP addresses to avoid conflicts with your router's automatic D
 * **Gateway (Router):** `192.168.10.1`
 
 ### DNS Setup: `strixly.nuclear.cooking`
-You have two main ways to make `strixly.nuclear.cooking` resolve to this machine:
+To make `strixly.nuclear.cooking` resolve to this machine, we recommend using a Public DNS A Record.
 
-#### Option A: Public DNS A Record (Highly Recommended & Easiest)
 If you own or manage the DNS settings for `nuclear.cooking` (e.g., on Cloudflare, AWS Route 53, Namecheap, etc.):
 1. Go to your DNS provider's dashboard.
 2. Add an **A Record** pointing `strixly.nuclear.cooking` to `192.168.10.222`.
 3. Add an **A Record** pointing `strixly-wifi.nuclear.cooking` to `192.168.10.223` (optional).
 
 *Why this is best:* Every device on your home network will automatically resolve the domain to your local machine without any local DNS server setup or client-side configuration! It also makes setting up local SSL certificates (e.g., via Let's Encrypt) trivial.
-
-#### Option B: Local DNS Server (dnsmasq)
-If you prefer to resolve it locally without public DNS:
-We have included a `setup_network.sh` script that installs a `dnsmasq` configuration on this machine to intercept requests for `strixly.nuclear.cooking` and serve them locally.
-*Note:* Other machines on the network will need to set their DNS server to `192.168.10.222` to resolve the domain.
 
 ### 🚀 Automated Network Setup Script
 
@@ -153,7 +147,7 @@ To configure the static IPs and start the local DNS resolver:
    sudo ./setup_network.sh
    ```
 
-*(This will update NetworkManager connection profiles for "Wired connection 1" and "Lamese 1" to use the static IPs and set up dnsmasq as a local resolver).*
+*(This will update NetworkManager connection profiles to use the static IPs).*
 
 ---
 

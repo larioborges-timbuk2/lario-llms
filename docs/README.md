@@ -178,7 +178,7 @@ Three disposable development environments with full AI stack access:
 | `lario-dev-mint` | `8442` | Linux Mint |
 
 **Each includes:**
-- nvm + Node 24, ohmyzsh, neovim, tmux, yazi, opencode, gram (terminal IDE)
+- fnm + Node 24, ohmyzsh, neovim, tmux, yazi (with doxx & mdfried), splashboard, herdr, pik, zenith, harlequin, opencode, gram (terminal IDE)
 - X11 forwarding for GUI apps
 - ROCm GPU passthrough (same as your LLM stack)
 - SSH keys mounted read-only — full git access (clone, push, PR), but keys can't be stolen

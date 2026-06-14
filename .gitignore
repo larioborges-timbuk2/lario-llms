@@ -19,3 +19,9 @@ dev-containers/*.tar.gz
 dev-containers/yazi
 dev-containers/gram
 dev-containers/.opencode/
+dev-containers/splashboard
+dev-containers/.splashboard/secrets.toml
+dev-containers/.harlequin.toml
+
+
+

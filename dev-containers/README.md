@@ -9,12 +9,19 @@ Each container has the same tooling — only the branding differs.
 
 | Tool | What |
 |---|---|
-| **nvm + Node 24** | JavaScript runtime via nvm |
+| **fnm + Node 24** | JavaScript runtime via fnm |
 | **opencode** | Your AI coding assistant, pre-configured to talk to Bifrost |
 | **ohmyzsh** | Zsh with plugins and themes |
 | **neovim** | Terminal editor |
 | **tmux** | Terminal multiplexer |
-| **yazi** | Terminal file manager |
+| **yazi** | Terminal file manager (configured with doxx & mdfried) |
+| **splashboard** | Customizable CLI dashboard with project widgets |
+| **doxx** | Terminal-native Word (.docx) document viewer |
+| **mdfried** | Terminal-based markdown viewer |
+| **herdr** | Agent / workspace multiplexer (tmux-like) |
+| **pik** | Process interactive killer |
+| **zenith** | Terminal system resource monitor |
+| **harlequin** | TUI SQL client database manager |
 | **gram** | Terminal IDE (if available — installs from GitHub releases) |
 | **git** | With **push blocked** — clone/pull works, pushes are rejected |
 | **ROCm GPU** | Same AMD GPU access as the LLM stack |

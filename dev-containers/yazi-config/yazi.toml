@@ -1,0 +1,108 @@
+[opener]
+# Defines the terminal opener
+terminal = [
+    { run = 'sh -c "$SHELL"', block = true, desc = "Open shell here", for = "unix" }
+]
+
+# Defines the editor opener
+custom_editor = [
+    { run = '${EDITOR:-nano} "$@"', block = true, desc = "Open in EDITOR", for = "unix" }
+]
+
+# Defines doxx opener
+doxx = [
+    { run = 'doxx "$@"', block = true, desc = "Open in doxx", for = "unix" }
+]
+
+# Defines mdfried opener
+mdfried = [
+    { run = 'mdfried "$@"', block = true, desc = "Open in mdfried", for = "unix" }
+]
+
+# 1. Directory rule must be FIRST
+[[open.prepend_rules]]
+mime = "inode/directory"
+use = "terminal"
+
+# docx files
+[[open.prepend_rules]]
+url = "*.docx"
+use = "doxx"
+
+[[open.prepend_rules]]
+mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+use = "doxx"
+
+# markdown files
+[[open.prepend_rules]]
+url = "*.md"
+use = "mdfried"
+
+[[open.prepend_rules]]
+mime = "text/markdown"
+use = "mdfried"
+
+# 2. Text and common code files
+[[open.prepend_rules]]
+mime = "text/*"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+mime = "application/json"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+mime = "application/javascript"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.html"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.css"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.js"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.ts"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.jsx"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.tsx"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.py"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.rs"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.go"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.sh"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.toml"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.yaml"
+use = "custom_editor"
+
+[[open.prepend_rules]]
+url = "*.yml"
+use = "custom_editor"

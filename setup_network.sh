@@ -7,7 +7,7 @@ set -e
 WIRED_IP="192.168.10.222/24"
 WIFI_IP="192.168.10.223/24"
 GATEWAY="192.168.10.1"
-LOCAL_DNS="127.0.0.1"
+UPSTREAM_DNS="1.1.1.1,8.8.8.8"
 
 echo "=================================================================="
 echo "  Local Network Static IP & DNS Resolver Setup Script"
@@ -38,7 +38,7 @@ if [ -n "$WIRED_CONN" ]; then
     nmcli connection modify "$WIRED_CONN" \
       ipv4.addresses "$WIRED_IP" \
       ipv4.gateway "$GATEWAY" \
-      ipv4.dns "$LOCAL_DNS" \
+      ipv4.dns "$UPSTREAM_DNS" \
       ipv4.method "manual"
     echo "    [✓] Ethernet static IP configured."
     WIRED_CONFIGURED=true
@@ -58,7 +58,7 @@ if [ -n "$WIFI_CONN" ]; then
     nmcli connection modify "$WIFI_CONN" \
       ipv4.addresses "$WIFI_IP" \
       ipv4.gateway "$GATEWAY" \
-      ipv4.dns "$LOCAL_DNS" \
+      ipv4.dns "$UPSTREAM_DNS" \
       ipv4.method "manual"
     echo "    [✓] Wi-Fi static IP configured."
     WIFI_CONFIGURED=true
@@ -69,43 +69,7 @@ else
   echo "[!] No active Wi-Fi connection profile detected."
 fi
 
-# Configure dnsmasq if requested
-echo ""
-read -p "Configure local dnsmasq resolver for strixly.nuclear.cooking? (y/N): " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  DNSMASQ_CONF="/etc/dnsmasq.d/strixly.conf"
-  echo "[-] Writing dnsmasq config to $DNSMASQ_CONF..."
-  
-  WIRED_DEV=$(nmcli -t -f DEVICE,TYPE connection show --active | grep ethernet | head -n1 | cut -d: -f1)
-  WIFI_DEV=$(nmcli -t -f DEVICE,TYPE connection show --active | grep wireless | head -n1 | cut -d: -f1)
 
-  cat <<EOF > "$DNSMASQ_CONF"
-# Configuration for strixly.nuclear.cooking
-# Listen only on specified interfaces and local loopback address
-$( [ -n "$WIRED_DEV" ] && echo "interface=$WIRED_DEV" )
-$( [ -n "$WIFI_DEV" ] && echo "interface=$WIFI_DEV" )
-listen-address=127.0.0.1
-bind-dynamic
-
-# Domain mapping
-address=/strixly.nuclear.cooking/192.168.10.222
-address=/strixly-wifi.nuclear.cooking/192.168.10.223
-
-# Upstream DNS forwarding
-server=1.1.1.1
-server=8.8.8.8
-EOF
-
-  echo "[-] Enabling and restarting dnsmasq systemd service..."
-  systemctl enable dnsmasq
-  systemctl restart dnsmasq
-  echo "    [✓] dnsmasq configured and restarted."
-else
-  echo "[!] Skipping dnsmasq resolver configuration."
-fi
-
-echo ""
 echo "=================================================================="
 echo "  Configuration Finished!"
 echo "=================================================================="
@@ -117,7 +81,4 @@ if [ "$WIFI_CONFIGURED" = true ]; then
   echo "  sudo nmcli connection up \"$WIFI_CONN\""
 fi
 echo ""
-echo "Note: If you configured dnsmasq, other devices on your home network"
-echo "can access 'strixly.nuclear.cooking' by setting their DNS server"
-echo "to this machine's IP (192.168.10.222)."
 echo "=================================================================="
