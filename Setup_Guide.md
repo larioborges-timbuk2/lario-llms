@@ -111,46 +111,6 @@ opencode web --port 4096 --hostname 0.0.0.0
 Your friend can then access your design engine at `http://192.168.10.90:4096`!
 
 ---
-
-## 🌐 Local Network Static IP & DNS Setup
-
-To make it easy for all computers in your network to access test servers, SSH, and your AI stack, you can configure a static IP and assign the local domain name `strixly.nuclear.cooking` to this machine.
-
-### Static IP Choices
-We use high-range IP addresses to avoid conflicts with your router's automatic DHCP IP range:
-* 🔌 **Wired (Ethernet):** `192.168.10.222`
-* 📶 **Wi-Fi:** `192.168.10.223`
-* **Subnet Mask:** `/24` (`255.255.255.0`)
-* **Gateway (Router):** `192.168.10.1`
-
-### DNS Setup: `strixly.nuclear.cooking`
-To make `strixly.nuclear.cooking` resolve to this machine, we recommend using a Public DNS A Record.
-
-If you own or manage the DNS settings for `nuclear.cooking` (e.g., on Cloudflare, AWS Route 53, Namecheap, etc.):
-1. Go to your DNS provider's dashboard.
-2. Add an **A Record** pointing `strixly.nuclear.cooking` to `192.168.10.222`.
-3. Add an **A Record** pointing `strixly-wifi.nuclear.cooking` to `192.168.10.223` (optional).
-
-*Why this is best:* Every device on your home network will automatically resolve the domain to your local machine without any local DNS server setup or client-side configuration! It also makes setting up local SSL certificates (e.g., via Let's Encrypt) trivial.
-
-### 🚀 Automated Network Setup Script
-
-We have created a helper script [setup_network.sh](file:///home/lario/lario-llms/setup_network.sh) in this directory. 
-
-To configure the static IPs and start the local DNS resolver:
-1. Make the script executable:
-   ```bash
-   chmod +x setup_network.sh
-   ```
-2. Run it with root privileges:
-   ```bash
-   sudo ./setup_network.sh
-   ```
-
-*(This will update NetworkManager connection profiles to use the static IPs).*
-
----
-
 ## 💾 Dual-OS Shared exFAT Model Storage (Windows & Linux)
 
 If you dual-boot between Linux (for development/AI) and Windows (for gaming/other uses), you can share a single copy of your model weights across both operating systems to save hundreds of gigabytes of disk space.
@@ -237,3 +197,29 @@ It covers:
 * How to manually boot your Linux kernel directly from the `grub>` command prompt.
 * How to chroot and reinstall GRUB using a Live Linux USB.
 * How to recover the Windows Boot Manager using `bcdboot` if it gets wiped from the partition.
+
+---
+
+## 🛠️ Local Terminal Tools & Custom Presets
+
+We have configured custom shell integrations and file handling rules for daily productivity.
+
+### ⏰ Terminal Clock (`tuime`)
+The TUI clock [tuime](file:///home/lario/.local/bin/tuime) is configured with aliases in your [.zshrc](file:///home/lario/.zshrc) for various colorful, bright, and screensaver presets:
+* **`clock-candy`**: A colorful clock with random, bright candy-like colors.
+* **`clock-bright`**: A super bright clock using the Chrome font with candy colors.
+* **`clock-3d`**: A futuristic clock utilizing a custom cyan/magenta color gradient and 3D font.
+* **`clock-ss`**: Runs the clock in screensaver mode (exits on any key press instead of requiring `q`).
+* **`clock-candy-ss`**: Candy color clock in screensaver mode.
+* **`clock-bright-ss`**: Super bright Chrome font clock in screensaver mode.
+* **`clock-3d-ss`**: Cyan/magenta 3D gradient clock in screensaver mode.
+
+### 📊 CSV Viewer (`xan`)
+The Rust-based CSV viewer/processor [xan](file:///home/lario/.local/bin/xan) is configured as the default handler for all CSV files (`*.csv` and `text/csv` mime types) inside the [yazi](file:///home/lario/.config/yazi/yazi.toml) terminal file manager:
+* Files are automatically opened with paginated viewer mode: `xan view -p`.
+* To run it manually from any terminal, run: `xan view <filename.csv>`.
+
+### 🔑 Env File Manager (`lazyenv`)
+The TUI environment variable manager [lazyenv](file:///home/lario/.local/bin/lazyenv) is configured as the default handler for all `.env` files (`*.env`) inside the [yazi](file:///home/lario/.config/yazi/yazi.toml) terminal file manager:
+* Opening a `.env` file automatically scans its parent directory and opens `lazyenv` so you can view, edit, and compare all `.env` files in that folder.
+* To run it manually from any terminal, run: `lazyenv <directory_path>`.
