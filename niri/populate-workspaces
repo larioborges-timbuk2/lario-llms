@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Populates workspaces with Gram and Brave.
+# Usage: populate-workspaces [NUM_WORKSPACES]
+
+MAX="${1:-5}"
+
+for i in $(seq 1 "$MAX"); do
+    niri msg action focus-workspace "$i"
+    
+    niri msg action spawn flatpak run app.liten.Gram
+    niri msg action spawn "google-chrome"
+    
+    # Niri spawn actions are tied to the currently focused workspace when the window maps.
+    # We must sleep briefly so the apps map before we change focus to the next workspace.
+    sleep 0.7
+done
+
+# Return to workspace 1
+niri msg action focus-workspace 1
