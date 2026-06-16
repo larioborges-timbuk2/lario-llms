@@ -1,0 +1,14 @@
+# Workspace Name
+@workspace playground
+
+# Launch Gram editor
+app.liten.Gram | flatpak run app.liten.Gram
+
+# Launch Chrome
+google-chrome | google-chrome --new-window about:blank
+
+# Launch simple terminal
+com.mitchellh.ghostty | ghostty --title="playground-terminal"
+
+# Launch Harlequin SQL IDE
+com.mitchellh.ghostty | ghostty --title="playground-harlequin" -e harlequin

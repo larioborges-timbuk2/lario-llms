@@ -45,88 +45,26 @@ launch_on_workspace() {
     return 1
 }
 
-# --- 1. SYSTEM WORKSPACE ---
-echo "Configuring system workspace..."
-
-# Launch clock (tuime) and zenith
-clock_id=$(launch_on_workspace "system" "com.mitchellh.ghostty" ghostty --title="system-clock" -e tuime)
-zenith_id=$(launch_on_workspace "system" "com.mitchellh.ghostty" ghostty --title="system-zenith" -e zenith)
-
-# Merge zenith into the clock's column (vertical split)
-if [ -n "$clock_id" ] && [ -n "$zenith_id" ]; then
-    niri msg action focus-window --id "$clock_id"
-    niri msg action consume-window-into-column
-    niri msg action set-column-width "50%"
-fi
-
-# Prepare and open redthread board for system workspace
-sys_rt_data_dir="/home/lario/.local/share/redthread_workspaces/system"
-sys_rt_notes_file="${sys_rt_data_dir}/redthread/notes.json"
-if [ ! -f "$sys_rt_notes_file" ]; then
-    mkdir -p "$(dirname "$sys_rt_notes_file")"
-    cat <<EOF > "$sys_rt_notes_file"
+# --- 1. PREPARATION PHASE ---
+# Initialize Redthread workspaces if they don't exist
+for ws in system t2-mono-1 t2-mono-2 t2-mono-3 t2-mono-4; do
+    dir="/home/lario/.local/share/redthread_workspaces/$ws"
+    file="$dir/redthread/notes.json"
+    if [ ! -f "$file" ]; then
+        mkdir -p "$(dirname "$file")"
+        name="System TODO"
+        if [ "$ws" != "system" ]; then
+            # Extract workspace number
+            n="${ws##*-}"
+            name="T2 Mono $n TODO"
+        fi
+        cat <<EOF > "$file"
 {
   "schemaVersion": 4,
   "activeIdx": 0,
   "boards": [
     {
-      "name": "System TODO",
-      "notes": [],
-      "strings": []
-    }
-  ]
-}
-EOF
-fi
-
-# Launch redthread TUI
-redthread_id=$(XDG_DATA_HOME="$sys_rt_data_dir" launch_on_workspace "system" "com.mitchellh.ghostty" ghostty --title="system-redthread" -e redthread)
-if [ -n "$redthread_id" ]; then
-    niri msg action focus-window --id "$redthread_id"
-    niri msg action set-column-width "50%"
-fi
-
-# Launch Chrome
-launch_on_workspace "system" "google-chrome" google-chrome --new-window about:blank
-
-# Launch Sublime Text
-launch_on_workspace "system" "sublime_text" flatpak run com.sublimehq.SublimeText
-
-
-# --- 2. PLAYGROUND WORKSPACE ---
-echo "Configuring playground workspace..."
-
-# Launch Gram editor
-launch_on_workspace "playground" "app.liten.Gram" flatpak run app.liten.Gram
-
-# Launch Chrome
-launch_on_workspace "playground" "google-chrome" google-chrome --new-window about:blank
-
-# Launch simple terminal
-launch_on_workspace "playground" "com.mitchellh.ghostty" ghostty --title="playground-terminal"
-
-# Launch Harlequin SQL IDE
-launch_on_workspace "playground" "com.mitchellh.ghostty" ghostty --title="playground-harlequin" -e harlequin
-
-
-# --- 3. T2 MONO WORKSPACES (1 to 4) ---
-for n in {1..4}; do
-    echo "Configuring T2 Mono ${n} workspace..."
-    ws_name="T2 Mono ${n}"
-    dir_path="/home/lario/timbuk2/t2-mono-${n}"
-    
-    # 1. Prepare and open redthread board
-    rt_data_dir="/home/lario/.local/share/redthread_workspaces/t2-mono-${n}"
-    rt_notes_file="${rt_data_dir}/redthread/notes.json"
-    if [ ! -f "$rt_notes_file" ]; then
-        mkdir -p "$(dirname "$rt_notes_file")"
-        cat <<EOF > "$rt_notes_file"
-{
-  "schemaVersion": 4,
-  "activeIdx": 0,
-  "boards": [
-    {
-      "name": "T2 Mono ${n} TODO",
+      "name": "$name",
       "notes": [],
       "strings": []
     }
@@ -134,19 +72,66 @@ for n in {1..4}; do
 }
 EOF
     fi
-    XDG_DATA_HOME="$rt_data_dir" launch_on_workspace "$ws_name" "com.mitchellh.ghostty" ghostty --title="t2-mono-${n}-redthread" -e redthread
-    
-    # 2. Open Croft in terminal
-    launch_on_workspace "$ws_name" "com.mitchellh.ghostty" ghostty --title="t2-mono-${n}-croft" --working-directory="$dir_path" -e croft
-    
-    # 3. Open Chrome
-    launch_on_workspace "$ws_name" "google-chrome" google-chrome --new-window about:blank
-    
-    # 4. Open Cline
-    # launch_on_workspace "$ws_name" "com.mitchellh.ghostty" ghostty --title="t2-mono-${n}-cline" --working-directory="$dir_path" -e cline -i
-    
-    # 5. Open Terminal
-    launch_on_workspace "$ws_name" "com.mitchellh.ghostty" ghostty --title="t2-mono-${n}-terminal" --working-directory="$dir_path"
 done
+
+# --- 2. CONFIG LOAD PHASE ---
+# Load and execute layout configurations from ~/.config/niri-wspaces/
+WSPACE_DIR="/home/lario/.config/niri-wspaces"
+if [ -d "$WSPACE_DIR" ]; then
+    # Sort files to guarantee a deterministic loading order
+    for ws_file in $(find "$WSPACE_DIR" -maxdepth 1 -type f | sort); do
+        echo "Processing workspace config: $ws_file"
+        
+        current_ws=""
+        
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Trim whitespace
+            line=$(echo "$line" | xargs)
+            
+            # Skip comments and empty lines
+            [ -z "$line" ] && continue
+            [[ "$line" =~ ^# ]] && continue
+            
+            # Check for directives
+            if [[ "$line" =~ ^@workspace[[:space:]]+(.*) ]]; then
+                current_ws="${BASH_REMATCH[1]}"
+                echo "Switching target workspace to: $current_ws"
+                continue
+            elif [[ "$line" =~ ^@action[[:space:]]+(.*) ]]; then
+                action_cmd="${BASH_REMATCH[1]}"
+                echo "Running action: $action_cmd"
+                eval "$action_cmd"
+                continue
+            fi
+            
+            # Window launch: app_id | command [| env_vars [| var_name]]
+            # Split by |
+            IFS='|' read -r app_id cmd env_vars var_name <<< "$line"
+            app_id=$(echo "$app_id" | xargs)
+            cmd=$(echo "$cmd" | xargs)
+            env_vars=$(echo "$env_vars" | xargs)
+            var_name=$(echo "$var_name" | xargs)
+            
+            [ -z "$app_id" ] || [ -z "$cmd" ] && continue
+            
+            echo "Launching $app_id (cmd: $cmd) on workspace: $current_ws"
+            
+            win_id=""
+            if [ -n "$env_vars" ]; then
+                win_id=$(eval "export $env_vars; launch_on_workspace \"\$current_ws\" \"\$app_id\" $cmd")
+            else
+                win_id=$(eval "launch_on_workspace \"\$current_ws\" \"\$app_id\" $cmd")
+            fi
+            
+            if [ -n "$var_name" ] && [ -n "$win_id" ]; then
+                eval "$var_name=\"$win_id\""
+                echo "Captured ID for $var_name: $win_id"
+            fi
+            
+        done < "$ws_file"
+    done
+else
+    echo "Warning: workspace configuration directory $WSPACE_DIR not found."
+fi
 
 echo "Configuration completed!"

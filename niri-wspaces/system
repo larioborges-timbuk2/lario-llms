@@ -1,0 +1,19 @@
+# Workspace Name
+@workspace system
+
+# Launch clock (tuime) and zenith
+com.mitchellh.ghostty | ghostty --title="system-clock" -e tuime | | clock_id
+com.mitchellh.ghostty | ghostty --title="system-zenith" -e zenith | | zenith_id
+
+# Merge zenith into the clock's column (vertical split)
+@action [ -n "$clock_id" ] && [ -n "$zenith_id" ] && niri msg action focus-window --id "$clock_id" && niri msg action consume-window-into-column && niri msg action set-column-width "50%"
+
+# Launch redthread TUI
+com.mitchellh.ghostty | ghostty --title="system-redthread" -e redthread | XDG_DATA_HOME=/home/lario/.local/share/redthread_workspaces/system | redthread_id
+@action [ -n "$redthread_id" ] && niri msg action focus-window --id "$redthread_id" && niri msg action set-column-width "50%"
+
+# Launch Chrome
+google-chrome | google-chrome --new-window about:blank
+
+# Launch Sublime Text
+sublime_text | flatpak run com.sublimehq.SublimeText

@@ -17,6 +17,23 @@ the applications for a particular context: system monitoring, a scratch
 *   [`startup.sh`](file:///home/lario/lario-llms/niri/startup.sh) — the bash script Niri runs at login to prepare data directories, launch session applications, and lay out workspaces.
 *   [`populate-workspaces`](file:///home/lario/lario-llms/niri/populate-workspaces) — helper script used to pre-populate local browser windows and Flatpak apps.
 *   [`niricritty-record`](file:///home/lario/lario-llms/niri/niricritty-record) — screen recording toggle script using `wf-recorder` and `libnotify`.
+*   [`niri-wspaces/`](file:///home/lario/lario-llms/niri-wspaces/) — directory containing individual, modular workspace configuration files (e.g., `system`, `playground`, `t2-mono-1`).
+
+---
+
+## Dynamic Workspace Configurations (`niri-wspaces/`)
+
+Instead of hardcoding workspace logic and commands directly in the `startup.sh` script, it parses files found inside `~/.config/niri-wspaces/`. Each file defines the layout and commands for a given workspace.
+
+### Config File Format:
+*   Lines starting with `#` or empty lines are ignored.
+*   **Directives**:
+    *   `@workspace <name>` — Sets the target workspace for subsequent app launches (e.g., `@workspace system`).
+    *   `@action <command>` — Executes an arbitrary bash command (with dynamic variable expansion for captured window IDs).
+*   **Window Launch Lines**:
+    *   `app_id | command [| env_vars [| var_name]]`
+    *   *Example*: `com.mitchellh.ghostty | ghostty --title="system-clock" -e tuime | | clock_id`
+    *   This launches the app under the current target workspace, optionally setting environment variables, and captures the resulting window ID into `var_name` for use in subsequent `@action` lines.
 
 ---
 
@@ -121,6 +138,10 @@ cp config.kdl ~/.config/niri/config.kdl
 cp keybinds.kdl ~/.config/niri/keybinds.kdl
 cp startup.sh ~/.config/niri/startup.sh
 chmod +x ~/.config/niri/startup.sh
+
+# Copy modular workspace configurations
+mkdir -p ~/.config/niri-wspaces
+cp -r niri-wspaces/* ~/.config/niri-wspaces/
 
 # Copy executable binaries to user's bin path
 mkdir -p ~/.local/bin
